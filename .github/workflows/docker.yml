@@ -22,39 +22,19 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
-      # Log in to DockerHub
-      - name: Log in to DockerHub
+
+
+
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # Extract metadata for Docker
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ github.event.repository.name }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      # Build and push Docker image
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Output image details
-      - name: Image Details
-        run: |
-          echo "Docker images pushed to DockerHub:"
-          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n'
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPOSITORY }}:latest
